@@ -61,17 +61,15 @@ var prefix = '${environmentName}${resourceToken}'
 var tags = { 'azd-env-name': environmentName }
 
 // Organize resources in a resource group
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' =
-  if (empty(openAiResourceGroupName)) {
-    name: '${prefix}-rg'
-    location: location
-    tags: tags
-  }
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = if (empty(openAiResourceGroupName)) {
+  name: '${prefix}-rg'
+  location: location
+  tags: tags
+}
 
-resource openAiResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing =
-  if (!empty(openAiResourceGroupName)) {
-    name: !empty(openAiResourceGroupName) ? openAiResourceGroupName : resourceGroup.name
-  }
+resource openAiResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(openAiResourceGroupName)) {
+  name: !empty(openAiResourceGroupName) ? openAiResourceGroupName : resourceGroup.name
+}
 
 module openAi 'core/ai/cognitiveservices.bicep' = {
   name: 'openai'
@@ -107,7 +105,7 @@ module openAiRoleUser 'core/security/role.bicep' = {
   name: 'openai-role-user'
   params: {
     principalId: principalId
-    roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+    roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd' // Cognitive Services OpenAI User
     principalType: 'User'
   }
 }
