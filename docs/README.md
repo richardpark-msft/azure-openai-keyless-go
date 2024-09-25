@@ -8,7 +8,7 @@ products:
   - azure
   - ai-services
   - azure-openai
-urlFragment: azure-openai-keyless
+urlFragment: azure-openai-keyless-go
 ---
 
 <!-- YAML front-matter schema: https://review.learn.microsoft.com/help/contribute/samples/process/onboarding?branch=main#supported-metadata-fields-for-readmemd -->
