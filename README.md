@@ -1,3 +1,18 @@
+<!--
+---
+name: Azure OpenAI resource with keyless authentication
+description: Provision an Azure OpenAI resource with keyless authentication and use the Go OpenAI SDK to connect to it.
+languages:
+- go
+- bicep
+- azdeveloper
+products:
+- azure-openai
+- azure
+page_type: sample
+urlFragment: azure-openai-keyless-go
+---
+-->
 # Azure OpenAI Keyless Deployment
 
 The purpose of this repository is to provision an Azure OpenAI account with an RBAC role permission for your user account to access,
@@ -23,7 +38,7 @@ so that you can use the OpenAI API SDKs with keyless (Entra) authentication. By 
     azd provision
     ```
 
-    It will prompt you to provide an `azd` environment name (like "chat-app"), select a subscription from your Azure account, and select a [location where the OpenAI model is available](https://learn.microsoft.com/azure/ai-services/openai/concepts/models#standard-deployment-model-availability) (like "canadaeast"). Then it will provision the resources in your account and deploy the latest code. If you get an error or timeout with deployment, changing the location can help, as there may be availability constraints for the OpenAI resource. To change the location run: 
+    It will prompt you to provide an `azd` environment name (like "chat-app"), select a subscription from your Azure account, and select a [location where the OpenAI model is available](https://learn.microsoft.com/azure/ai-services/openai/concepts/models#standard-deployment-model-availability) (like "canadaeast"). Then it will provision the resources in your account and deploy the latest code. If you get an error or timeout with deployment, changing the location can help, as there may be availability constraints for the OpenAI resource. To change the location run:
 
     ```shell
     azd env set AZURE_LOCATION "yournewlocationname"
