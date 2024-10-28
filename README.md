@@ -1,7 +1,7 @@
 <!--
 ---
-name: Azure OpenAI resource with keyless authentication
-description: Provision an Azure OpenAI resource with keyless authentication and use the Go OpenAI SDK to connect to it.
+name: Azure OpenAI resource with keyless auth (Go)
+description: Provision an Azure OpenAI resource with keyless authentication and use the Go Azure OpenAI SDK to connect to it.
 languages:
 - go
 - bicep
@@ -13,23 +13,94 @@ page_type: sample
 urlFragment: azure-openai-keyless-go
 ---
 -->
-# Azure OpenAI Keyless Deployment
+# Azure OpenAI resource with keyless auth (Go)
+
+[![Open in GitHub Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&skip_quickstart=true&machine=basicLinux32gb&repo=784926917&devcontainer_path=.devcontainer%2Fdevcontainer.json&geo=WestUs2)
+[![Open in Dev Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Azure-Samples/azure-openai-keyless-go)
 
 The purpose of this repository is to provision an Azure OpenAI account with an RBAC role permission for your user account to access,
-so that you can use the OpenAI API SDKs with keyless (Entra) authentication. By default, the account will include a gpt-3.5 model, but you can modify `infra/main.bicep` to deploy other models instead.
+so that you can use the OpenAI API SDKs with keyless (Entra) authentication.
 
-## Prerequisites
+* [Features](#features)
+* [Getting started](#getting-started)
+  * [GitHub Codespaces](#github-codespaces)
+  * [VS Code Dev Containers](#vs-code-dev-containers)
+  * [Local environment](#local-environment)
+* [Deployment](#deployment)
+* [Running the Go example](#running-the-go-example)
+* [Guidance](#guidance)
+  * [Costs](#costs)
+  * [Security guidelines](#security-guidelines)
+* [Resources](#resources)
 
-1. Sign up for a [free Azure account](https://azure.microsoft.com/free/) and create an Azure Subscription.
-2. Request access to Azure OpenAI Service by completing the form at [https://aka.ms/oai/access](https://aka.ms/oai/access) and awaiting approval.
-3. Install the [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd). (If you open this repository in Codespaces or with the VS Code Dev Containers extension, that part will be done for you.)
+## Features
 
-## Provisioning
+* Provisions an Azure OpenAI account with keyless authentication enabled
+* Grants the "Cognitive Services OpenAI User" RBAC role to your user account
+* Deploys a gpt-3.5 model by default, but you can modify the [Bicep template](infra/main.bicep) to deploy other models
+* Example Go program uses the [openai](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai) Go module to make a request to the Azure OpenAI API
+
+### Architecture diagram
+
+![Architecture diagram: Microsoft Entra managed identity connecting to Azure AI services](./diagram.png)
+
+## Getting started
+
+You have a few options for getting started with this template.
+The quickest way to get started is GitHub Codespaces, since it will setup all the tools for you, but you can also [set it up locally](#local-environment).
+
+### GitHub Codespaces
+
+You can run this template virtually by using GitHub Codespaces. The button will open a web-based VS Code instance in your browser:
+
+1. Open the template (this may take several minutes):
+
+    [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Azure-Samples/azure-openai-keyless-go)
+
+2. Open a terminal window
+3. Continue with the [deployment steps](#deployment)
+
+### VS Code Dev Containers
+
+A related option is VS Code Dev Containers, which will open the project in your local VS Code using the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers):
+
+1. Start Docker Desktop (install it if not already installed)
+2. Open the project:
+
+    [![Open in Dev Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/azure-samples/azure-openai-keyless-go)
+
+3. In the VS Code window that opens, once the project files show up (this may take several minutes), open a terminal window.
+4. Continue with the [deployment steps](#deployment)
+
+### Local environment
+
+1. Make sure the following tools are installed:
+
+    * [Azure Developer CLI (azd)](https://aka.ms/install-azd)
+    * [Go 1.18+](https://go.dev/doc/install)
+
+2. Make a new directory called `azure-openai-keyless-go` and clone this template into it using the `azd` CLI:
+
+    ```shell
+    azd init -t azure-openai-keyless-go
+    ```
+
+    You can also use git to clone the repository if you prefer.
+
+3. Continue with the [deployment steps](#deployment)
+
+## Deployment
 
 1. Login to Azure:
 
     ```shell
     azd auth login
+    ```
+
+    For GitHub Codespaces users, if the previous command fails, try:
+
+   ```shell
+    azd auth login --use-device-code
     ```
 
 2. Provision the OpenAI account:
@@ -38,20 +109,29 @@ so that you can use the OpenAI API SDKs with keyless (Entra) authentication. By 
     azd provision
     ```
 
-    It will prompt you to provide an `azd` environment name (like "chat-app"), select a subscription from your Azure account, and select a [location where the OpenAI model is available](https://learn.microsoft.com/azure/ai-services/openai/concepts/models#standard-deployment-model-availability) (like "canadaeast"). Then it will provision the resources in your account and deploy the latest code. If you get an error or timeout with deployment, changing the location can help, as there may be availability constraints for the OpenAI resource. To change the location run:
+    It will prompt you to provide an `azd` environment name (like "chat-app"), select a subscription from your Azure account, and select a [location where the OpenAI model is available](https://learn.microsoft.com/azure/ai-services/openai/concepts/models#standard-deployment-model-availability) (like "canadaeast"). Then it will provision the resources in your account and deploy the latest code.
+
+    ⚠️ If you get an error or timeout with deployment, changing the location can help, as there may be availability constraints for the OpenAI resource. To change the location run:
 
     ```shell
     azd env set AZURE_LOCATION "yournewlocationname"
     ```
 
-3. When `azd` has finished, you should have an OpenAI account you can use locally when logged into your Azure account. You can output the necessary environment variables into an `.env` file like so:
+3. When `azd` has finished, you should have an OpenAI account you can use locally when logged into your Azure account. You can output the necessary environment variables into an `.env` file by running a script:
+
+    For Mac OS X / Linux:
 
     ```shell
-    azd env get-values > .env
+    ./write_dot_env.sh
     ```
 
-4. Then you can run the example code in this repository.
+    For Windows:
 
+    ```shell
+    pwsh ./write_dot_env.ps1
+    ```
+
+4. Then you can proceed to [run the Go example](#running-the-go-example).
 
 ## Running the Go example
 
@@ -62,3 +142,20 @@ so that you can use the OpenAI API SDKs with keyless (Entra) authentication. By 
     ```
 
     This will use the OpenAI API SDK to make a request to the OpenAI API and print the response.
+
+## Guidance
+
+### Costs
+
+This template creates only the Azure OpenAI resource, which is free to provision. However, you will be charged for the usage of the Azure OpenAI chat completions API. The pricing is based on the number of tokens used, with around 1-3 tokens used per word. You can find the pricing details for the OpenAI API on the [Azure Cognitive Services pricing page](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/).
+
+### Security guidelines
+
+This template uses [keyless authentication](https://learn.microsoft.com/en-us/azure/developer/ai/keyless-connections) for authenticating to the Azure OpenAI resource. This is a secure way to authenticate to Azure resources without needing to store credentials in your code. Your Azure user account is assigned the "Cognitive Services OpenAI User" role, which allows you to access the OpenAI resource. You can find more information about the permissions of this role in the [Azure OpenAI documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/role-based-access-control).
+
+For further security, you could also deploy the Azure OpenAI inside a private virtual network (VNet) and use a private endpoint to access it. This would prevent the OpenAI resource from being accessed from the public internet.
+
+## Resources
+
+* [Video: Using keyless auth with Azure AI services](https://www.youtube.com/watch?v=IkDcQvKoQ8k)
+* [Sample app: Azure OpenAI + Container Apps + Managed Identity](https://github.com/Azure-Samples/openai-chat-app-quickstart)
